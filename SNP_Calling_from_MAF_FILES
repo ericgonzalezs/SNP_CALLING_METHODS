@@ -2,12 +2,15 @@
 #because of that, the first step is to change the name of the chromosomes 
 #for example like this
 ##################################################################
+
 for i in $(cat files.txt) #files.txt contains the fasta files and the maf files, because I am changing the names from both
+
 do
 
 sed 's/HanPSC8//g' $i | sed 's/HanXRQ//g' > NN_"$i"
 
 done
+
 ######################################################################
 #then I ran the TASSEL -MAFToGVCFPlugin like this in compute canada
 ######################################################################
@@ -26,7 +29,6 @@ module load StdEnv/2020 java/17.0.2 tabix/0.2.6
 name=$(echo $i | cut -d "." -f 1 )
 
 export PATH=$PATH:/home/egonza02/scratch/SOFTWARE/TASSEL/tassel-5-standalone
-#export PATH=/home/egonza02/scratch/SOFTWARE/GMAP/gmap-2021-12-17/bin/:$PATH
 export TMPDIR=/home/egonza02/scratch/ALIGNMENTS/GMAP/ALIGNMENTS
 
 run_pipeline.pl -Xmx489G -debug -MAFToGVCFPlugin -referenceFasta $f -mafFile $i -sampleName $name -gvcfOutput "$name".gvcf -fillGaps true > "$name"_output
