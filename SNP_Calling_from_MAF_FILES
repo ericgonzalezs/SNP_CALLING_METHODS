@@ -1,6 +1,6 @@
 #Tassel don't accepts the chromosome names as I had them
 #because of that, the first step is to change the name of the chromosomes 
-#for exmaple like this
+#for example like this
 ##################################################################
 for i in $(cat files.txt) #files.txt contains the fasta files and the maf files, because I am changing the names from both
 do
