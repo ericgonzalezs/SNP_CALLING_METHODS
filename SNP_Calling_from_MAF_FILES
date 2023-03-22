@@ -5,7 +5,6 @@
 for i in $(cat files.txt) #files.txt contains the fasta files and the maf files, because I am changing the names from both
 do
 
-
 sed 's/HanPSC8//g' $i | sed 's/HanXRQ//g' > NN_"$i"
 
 done
