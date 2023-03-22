@@ -1,0 +1,74 @@
+#Tassel don't accepts the chromosome names as I had them
+#because of that, the first step is to change the name of the chromosomes 
+#for exmaple like this
+##################################################################
+for i in $(cat files.txt) #files.txt contains the fasta files and the maf files, because I am changing the names from both
+do
+
+
+sed 's/HanPSC8//g' $i | sed 's/HanXRQ//g' > NN_"$i"
+
+done
+######################################################################
+#then I ran the TASSEL -MAFToGVCFPlugin like this in compute canada
+######################################################################
+#!/bin/bash
+#SBATCH --account=def-rieseber
+#SBATCH --time=3-0
+#SBATCH --cpus-per-task=4
+#SBATCH --mem=490G
+#SBATCH --array=1-2
+
+module load StdEnv/2020 java/17.0.2 tabix/0.2.6
+
+ i=$(cat MAFS.txt | head -n $SLURM_ARRAY_TASK_ID | tail -n 1)
+ f=$(cat FASTAS.txt | head -n $SLURM_ARRAY_TASK_ID | tail -n 1)
+
+name=$(echo $i | cut -d "." -f 1 )
+
+export PATH=$PATH:/home/egonza02/scratch/SOFTWARE/TASSEL/tassel-5-standalone
+#export PATH=/home/egonza02/scratch/SOFTWARE/GMAP/gmap-2021-12-17/bin/:$PATH
+export TMPDIR=/home/egonza02/scratch/ALIGNMENTS/GMAP/ALIGNMENTS
+
+run_pipeline.pl -Xmx489G -debug -MAFToGVCFPlugin -referenceFasta $f -mafFile $i -sampleName $name -gvcfOutput "$name".gvcf -fillGaps true > "$name"_output
+
+#############################################################################
+#tassel changed the names of some scaffolds 
+#so I fixed them like this
+###############################################################################
+sed -i 's/00c/00C/g' NN_HanPSC8.fasta
+#################################################################################
+
+#Then, I converted the gvcf to a vcf with only the SNPs like this
+##################################################################################
+#!/bin/bash
+#SBATCH --account=def-rieseber
+#SBATCH --time=3-0
+#SBATCH --cpus-per-task=8
+#SBATCH --mem=180G
+#SBATCH --array=1-2
+module load StdEnv/2020  gcc/9.3.0 bcftools/1.16  tabix/0.2.6
+
+i=$(cat GVCF.txt | head -n $SLURM_ARRAY_TASK_ID | tail -n 1)
+f=$(cat FASTAS.txt | head -n $SLURM_ARRAY_TASK_ID | tail -n 1)
+
+name=$(echo $i | cut -d "." -f 1)
+
+bcftools convert --gvcf2vcf --fasta-ref $f $i -Oz -o "$name".vcf.gz
+
+zcat  "$name".vcf.gz | grep -v "#" | sed 's/,<NON_REF>//g' | awk -v OFS="\t" '$10 ~ /^1/ && length($4) == 1 && length($5) == 1  && $5 !~ /N/ && $4 !~ /N/ {print}'  > "$name".SNPpos.vcf
+
+zcat  "$name".vcf.gz | grep "#" > "$name"head.txt
+
+cat   "$name"head.txt "$name".SNPpos.vcf > "$name"_WH.SNPpos.vcf
+
+rm "$name"head.txt
+rm "$name".SNPpos.vcf
+
+bgzip -c "$name"_WH.SNPpos.vcf > "$name"_WH.SNPpos.vcf.gz
+
+rm "$name"_WH.SNPpos.vcf
+
+#######################################################################################
+
+
