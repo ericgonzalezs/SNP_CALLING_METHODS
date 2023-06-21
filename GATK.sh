@@ -58,7 +58,7 @@ gatk --java-options "-Xmx8G" GenotypeGVCFs -R Ha412HOv2.0-20181130.fasta -V coho
 otation --annotation-group StandardAnnotation --annotation-group StandardHCAnnotation --standard-min-confidence-threshold-for-calling 2.0
 
 #############################################
-#Merge
+#Merge, I am not sure I used this
 
 #!/bin/bash
 #SBATCH --account=rpp-rieseber
