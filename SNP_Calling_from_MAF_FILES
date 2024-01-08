@@ -1,4 +1,45 @@
-#Tassel don't accepts the chromosome names as I had them
+#Alignment with anchrowave
+#create REF with Refrence.sh
+#!/bin/bash
+#SBATCH --account=def-rieseber
+#SBATCH --time=3-0
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=90G
+module load StdEnv/2020 minimap2/2.24 gcc/11.3.0
+
+export PATH=$PATH:/home/egonza02/scratch/SOFTWARE/ANCHORWAVE/anchorwave
+
+anchorwave gff2seq -r Ha412HOv2.0-20181130_17chr_newname.fasta -i Ha412HOv2_Final_newnames.sorted.gff3 -o ref.cds.fa
+
+#anchorwave gff2seq -r ANN1372_H2_hap2.reviewed.chr_assembled.fasta -i ANN1372H2_mincov75_minID75.PANNEW76k.gmap.gff3 -o refH2.cds.fa
+
+
+minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 Ha412HOv2.0-20181130_17chr_newname.fasta ref.cds.fa > ref.sam
+
+###################
+#####alignment with Alignment.sh
+#!/bin/bash
+#SBATCH --account=def-rieseber
+#SBATCH --time=2-0
+#SBATCH --array=1-2
+#SBATCH --cpus-per-task=10
+#SBATCH --mem=497G
+module load StdEnv/2020 minimap2/2.24 gcc/11.3.0
+export PATH=$PATH:/home/egonza02/scratch/SOFTWARE/ANCHORWAVE/anchorwave
+export TMPDIR=/home/egonza02/scratch/ALIGNMENTS/GMAP/ALIGNMENTS
+
+i=$(cat SEPHAP_GENOMES.txt | grep -v "Harg2202r1.0_H1_newname.fasta" | head -n $SLURM_ARRAY_TASK_ID | tail -n 1)
+name=$(echo $i | cut -d "." -f 1)
+
+minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 $i ref.cds.fa >  "$name"".sam"
+
+
+anchorwave proali -i Ha412HOv2_Final_newnames.sorted.gff3 -r Ha412HOv2.0-20181130_17chr_newname.fasta -a "$name"".sam" -as ref.cds.fa -ar ref.sam -s $i -n "$name""_vs_Ha412.anchors" -o "$nam
+e""_vs_Ha412_anchorwave.maf" -t 9 -R 1 -Q 1 -f "$name""_vs_Ha412_anchorwave.f.maf"  >  "$name""_vs_Ha412_anchorwave.log"
+
+################################################################
+#Tassel 
+#don't accepts the chromosome names as I had them
 #because of that, the first step is to change the name of the chromosomes 
 #for example like this
 ##################################################################
