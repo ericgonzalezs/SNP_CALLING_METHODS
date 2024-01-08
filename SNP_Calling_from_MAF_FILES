@@ -1,5 +1,8 @@
+##################################
 #Alignment with anchrowave
 #create REF with Refrence.sh
+##################################
+
 #!/bin/bash
 #SBATCH --account=def-rieseber
 #SBATCH --time=3-0
@@ -16,8 +19,10 @@ anchorwave gff2seq -r Ha412HOv2.0-20181130_17chr_newname.fasta -i Ha412HOv2_Fina
 
 minimap2 -x splice -t 10 -k 12 -a -p 0.4 -N 20 Ha412HOv2.0-20181130_17chr_newname.fasta ref.cds.fa > ref.sam
 
-###################
+##############################
 #####alignment with Alignment.sh
+##############################
+
 #!/bin/bash
 #SBATCH --account=def-rieseber
 #SBATCH --time=2-0
